@@ -149,89 +149,7 @@ class assign_submission_onlinetexte extends assign_submission_plugin {
      * @return true if elements were added to the form
      */
 
-    /*
-    public function get_form_elements($submission, MoodleQuickForm $mform, stdClass $data) {
-        $elements = array();
-
-
-        $customText = "This is some custom text that will appear above the submission form.";
-        $count = count_words($data->onlinetexte);
-
-    	$mform->addElement('html', $customText);
-        $mform->addElement('html', $count);
-
-        $editoroptions = $this->get_edit_options();
-        $submissionid = $submission ? $submission->id : 0;
-
-        if (!isset($data->onlinetexte)) {
-            $data->onlinetexte = '';
-        }
-        if (!isset($data->onlinetexteformat)) {
-            $data->onlinetexteformat = editors_get_preferred_format();
-        }
-
-        if ($submission) {
-            $onlinetextesubmission = $this->get_onlinetexte_submission($submission->id);
-            if ($onlinetextesubmission) {
-                $data->onlinetexte = $onlinetextesubmission->onlinetexte;
-                $data->onlinetexteformat = $onlinetextesubmission->onlineformat;
-            }
-
-        }
-
-        $data = file_prepare_standard_editor($data,
-                                             'onlinetexte',
-                                             $editoroptions,
-                                             $this->assignment->get_context(),
-                                             'assignsubmission_onlinetexte',
-                                             ASSIGNSUBMISSION_ONLINETEXT_FILEAREA,
-                                             $submissionid);
-        $mform->addElement('editor', 'onlinetexte_editor', $this->get_name(), null, $editoroptions);
-
-        return true;
-    }*/
-
-    /*
-    public function get_form_elements($submission, MoodleQuickForm $mform, stdClass $data) {
-    $elements = array();
-
-    $customText = "This is some custom text that will appear above the submission form.";
-
-    $editoroptions = $this->get_edit_options();
-    $submissionid = $submission ? $submission->id : 0;
-
-    if (!isset($data->onlinetexte)) {
-        $data->onlinetexte = '';
-    }
-    if (!isset($data->onlinetexteformat)) {
-        $data->onlinetexteformat = editors_get_preferred_format();
-    }
-
-    if ($submission) {
-        $onlinetextesubmission = $this->get_onlinetexte_submission($submission->id);
-        if ($onlinetextesubmission) {
-            $data->onlinetexte = $onlinetextesubmission->onlinetexte;
-            $data->onlinetexteformat = $onlinetextesubmission->onlineformat;
-        }
-    }
-
-    $data = file_prepare_standard_editor($data,
-        'onlinetexte',
-        $editoroptions,
-        $this->assignment->get_context(),
-        'assignsubmission_onlinetexte',
-        ASSIGNSUBMISSION_ONLINETEXT_FILEAREA,
-        $submissionid);
-    $mform->addElement('editor', 'onlinetexte_editor', $this->get_name(), null, $editoroptions);
-
-    // Count the words in the 'onlinetexte' field
-    $wordCount = count_words($data->onlinetexte);
-
-    // Add the word count to the form
-    $mform->addElement('static', 'word_count', 'Word Count', $wordCount);
-
-    return true;
-}*/
+    
 
     public function get_form_elements($submission, MoodleQuickForm $mform, stdClass $data) {
     $elements = array();
@@ -268,68 +186,28 @@ class assign_submission_onlinetexte extends assign_submission_plugin {
 
     $mform->addElement('html', '<div id="word_count_display">Word Count: 0</div>');
 
-    $this->add_real_time_word_count_script($mform);
+    $mform->addElement('html', '<div id="timer_display">Timer: </div>');
+
+    $duedate = $this->assignment->get_instance()->duedate;
+
+    $this->add_real_time_word_count_script($mform, $duedate);
 
     return true;
 }
 
-private function add_real_time_word_count_script($mform)
+
+function add_real_time_word_count_script($mform, $duedate)
 {
+    // Enqueue the JavaScript file with a relative path
     $js = <<<EOD
     <script type="text/javascript">
-        document.addEventListener("DOMContentLoaded", function()
-        {
-            var textArea = document.getElementById("id_onlinetexte_editor"); // Use the actual ID of your textarea element
-            var wordCountDisplay = document.getElementById("word_count_display");
-
-            function updateWordCount()
-            {
-                var content = textArea.value;
-                var wordCount = content.split(/\s+/).filter(Boolean).length;
-                wordCount -= 1;
-                wordCountDisplay.textContent = "Word Count: " + wordCount;
-            }
-
-            setInterval(updateWordCount, 10);
-
-            updateWordCount();
-        });
+        var duedate = new Date($duedate * 1000); // Convert Unix timestamp to milliseconds
     </script>
-EOD;
+    <script type="text/javascript" src="submission/onlinetexte/js/real_time.js"></script>
+    EOD;
 
     $mform->addElement('html', $js);
 }
-
-/*
-private function add_real_time_word_count_script($mform) {
-
-    $mform->addElement('html', '<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>');
-
-    $js = <<<EOD
-    <script type="text/javascript">
-        document.addEventListener("DOMContentLoaded", function() {
-            // Get the TinyMCE editor instance
-            var editor = tinymce.get("onlinetexte_editor"); // Replace "id_onlinetexte_editor" with the actual ID of your TinyMCE editor element
-            var wordCountDisplay = document.getElementById("word_count_display");
-
-            function updateWordCount() {
-                var content = editor.getContent();
-                var wordCount = content.split(/\s+/).filter(Boolean).length;
-                wordCountDisplay.textContent = "Word Count: " + wordCount;
-            }
-
-            // Update word count on editor change
-            editor.on("KeyUp", updateWordCount);
-
-            // Initial word count update
-            updateWordCount();
-        });
-    </script>
-EOD;
-
-    $mform->addElement('html', $js);
-}*/
-
 
 
 
