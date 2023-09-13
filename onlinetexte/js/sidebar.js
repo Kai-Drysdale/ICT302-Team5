@@ -1,4 +1,3 @@
-
 document.addEventListener("DOMContentLoaded", function () 
 {
     const alertLink = document.getElementById("sidebarbutton");
