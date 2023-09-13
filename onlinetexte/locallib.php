@@ -184,9 +184,15 @@ class assign_submission_onlinetexte extends assign_submission_plugin {
 
     $mform->addElement('editor', 'onlinetexte_editor', $this->get_name(), null, $editoroptions);
 
+    $mform->addElement('html', '<script> var link = document.createElement("link"); link.rel = "stylesheet"; link.type = "text/css"; link.href = "submission/onlinetexte/css/sidebar.css"; document.head.appendChild(link);</script>');
+
+    $mform->addElement('html',  '<a href="#" style="background-color:powderblue; float: right;" id="sidebarbutton">Side bar</a><script type="text/javascript" src="submission/onlinetexte/js/sidebar.js"></script>');
+
     $mform->addElement('html', '<div id="word_count_display">Word Count: 0</div>');
 
     $mform->addElement('html', '<div id="timer_display">Timer: </div>');
+
+    $mform->addElement('html', '<div id="sidebar"><div id="sidebarContent"><!-- content for the sidebar goes here --></div></div>');
 
     $duedate = $this->assignment->get_instance()->duedate;
 
