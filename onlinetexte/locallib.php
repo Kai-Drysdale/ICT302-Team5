@@ -26,7 +26,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 // File area for online text submission assignment.
-define('ASSIGNSUBMISSION_ONLINETEXT_FILEAREA', 'submissions_onlinetexte');
+define('ASSIGNSUBMISSION_ONLINETEXTE_FILEAREA', 'submissions_onlinetexte');
 
 /**
  * library class for onlinetexte submission plugin extending submission plugin base class
@@ -87,14 +87,14 @@ class assign_submission_onlinetexte extends assign_submission_plugin {
         $defaultwordlimitenabled = $this->get_config('wordlimitenabled');
 
         $options = array('size' => '6', 'maxlength' => '6');
-        $name = get_string('wordlimit', 'assignsubmission_onlinetexte');
+        $wordLimitName = get_string('wordlimit', 'assignsubmission_onlinetexte');
 
         // Create a text box that can be enabled/disabled for onlinetexte word limit.
         $wordlimitgrp = array();
         $wordlimitgrp[] = $mform->createElement('text', 'assignsubmission_onlinetexte_wordlimit', '', $options);
         $wordlimitgrp[] = $mform->createElement('checkbox', 'assignsubmission_onlinetexte_wordlimit_enabled',
                 '', get_string('enable'));
-        $mform->addGroup($wordlimitgrp, 'assignsubmission_onlinetexte_wordlimit_group', $name, ' ', false);
+        $mform->addGroup($wordlimitgrp, 'assignsubmission_onlinetexte_wordlimit_group', $wordLimitName, ' ', false);
         $mform->addHelpButton('assignsubmission_onlinetexte_wordlimit_group',
                               'wordlimit',
                               'assignsubmission_onlinetexte');
@@ -117,6 +117,12 @@ class assign_submission_onlinetexte extends assign_submission_plugin {
         $mform->hideIf('assignsubmission_onlinetexte_wordlimit_group',
                        'assignsubmission_onlinetexte_enabled',
                        'notchecked');
+        
+        //Add text area for adding link
+        $mform->addElement('textarea', 'assignsubmission_onlinetexte_addlink', 'Add Links: ', 'rows="2" cols="30"');
+        $mform->hideIf('assignsubmission_onlinetexte_addlink',
+                       'assignsubmission_onlinetexte_enabled',
+                       'notchecked');
     }
 
     /**
@@ -126,6 +132,7 @@ class assign_submission_onlinetexte extends assign_submission_plugin {
      * @return bool
      */
     public function save_settings(stdClass $data) {
+        //Save word limit
         if (empty($data->assignsubmission_onlinetexte_wordlimit) || empty($data->assignsubmission_onlinetexte_wordlimit_enabled)) {
             $wordlimit = 0;
             $wordlimitenabled = 0;
@@ -137,7 +144,26 @@ class assign_submission_onlinetexte extends assign_submission_plugin {
         $this->set_config('wordlimit', $wordlimit);
         $this->set_config('wordlimitenabled', $wordlimitenabled);
 
+        //Save links
+        if(empty($data->assignsubmission_onlinetexte_addlink)){
+            $links = '';
+        }
+        else{
+            $links = $data->assignsubmission_onlinetexte_addlink;
+        }
+
+        $links = $this->format_links($links);
+
+        $this->set_config('links', $links);
+
         return true;
+    }
+
+    //Format links for saving
+    function format_links($links){
+        $links = str_replace('\n', ' ', $links);
+
+        return $links;
     }
 
     /**
@@ -150,7 +176,6 @@ class assign_submission_onlinetexte extends assign_submission_plugin {
      */
 
     
-
     public function get_form_elements($submission, MoodleQuickForm $mform, stdClass $data) {
     $elements = array();
 
@@ -179,8 +204,12 @@ class assign_submission_onlinetexte extends assign_submission_plugin {
         $editoroptions,
         $this->assignment->get_context(),
         'assignsubmission_onlinetexte',
-        ASSIGNSUBMISSION_ONLINETEXT_FILEAREA,
+        ASSIGNSUBMISSION_ONLINETEXTE_FILEAREA,
         $submissionid);
+
+    //Get saved links
+    $linksStr = $this->get_config('links');
+    $linksArr = explode(' ', $linksStr);
 
     $mform->addElement('editor', 'onlinetexte_editor', $this->get_name(), null, $editoroptions);
 
@@ -192,7 +221,8 @@ class assign_submission_onlinetexte extends assign_submission_plugin {
 
     $mform->addElement('html', '<div id="timer_display">Timer: </div>');
 
-    $mform->addElement('html', '<div id="sidebar"><div id="sidebarContent"><!-- content for the sidebar goes here --></div></div>');
+    $mform->addElement('html', '<div id="sidebar"><div id="sidebarContent"><!-- content for the sidebar goes here --><br><br><br>'.$linksStr.
+                        '</div></div>');
 
     $duedate = $this->assignment->get_instance()->duedate;
 
@@ -214,8 +244,6 @@ function add_real_time_word_count_script($mform, $duedate)
 
     $mform->addElement('html', $js);
 }
-
-
 
     /**
      * Editor format options
@@ -252,7 +280,7 @@ function add_real_time_word_count_script($mform, $duedate)
                                                 $editoroptions,
                                                 $this->assignment->get_context(),
                                                 'assignsubmission_onlinetexte',
-                                                ASSIGNSUBMISSION_ONLINETEXT_FILEAREA,
+                                                ASSIGNSUBMISSION_ONLINETEXTE_FILEAREA,
                                                 $submission->id);
 
         $onlinetextesubmission = $this->get_onlinetexte_submission($submission->id);
@@ -261,7 +289,7 @@ function add_real_time_word_count_script($mform, $duedate)
 
         $files = $fs->get_area_files($this->assignment->get_context()->id,
                                      'assignsubmission_onlinetexte',
-                                     ASSIGNSUBMISSION_ONLINETEXT_FILEAREA,
+                                     ASSIGNSUBMISSION_ONLINETEXTE_FILEAREA,
                                      $submission->id,
                                      'id',
                                      false);
