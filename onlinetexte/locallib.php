@@ -120,6 +120,7 @@ class assign_submission_onlinetexte extends assign_submission_plugin {
         
         //Add text area for adding link
         $mform->addElement('textarea', 'assignsubmission_onlinetexte_addlink', 'Add Links: ', 'rows="2" cols="30"');
+        $mform->setDefault('assignsubmission_onlinetexte_addlink', $this->get_config('links'));
         $mform->hideIf('assignsubmission_onlinetexte_addlink',
                        'assignsubmission_onlinetexte_enabled',
                        'notchecked');
@@ -152,16 +153,15 @@ class assign_submission_onlinetexte extends assign_submission_plugin {
             $links = $data->assignsubmission_onlinetexte_addlink;
         }
 
-        $links = $this->format_links($links);
-
         $this->set_config('links', $links);
 
         return true;
     }
 
     //Format links for saving
-    function format_links($links){
-        $links = str_replace('\n', ' ', $links);
+    function format_links($links)
+    {
+        $links = str_replace(',', '<br />', $links);
 
         return $links;
     }
@@ -209,6 +209,7 @@ class assign_submission_onlinetexte extends assign_submission_plugin {
 
     //Get saved links
     $linksStr = $this->get_config('links');
+    $linksStr = $this->format_links($linksStr);
     $linksArr = explode(' ', $linksStr);
 
     $mform->addElement('editor', 'onlinetexte_editor', $this->get_name(), null, $editoroptions);
@@ -221,8 +222,7 @@ class assign_submission_onlinetexte extends assign_submission_plugin {
 
     $mform->addElement('html', '<div id="timer_display">Timer: </div>');
 
-    $mform->addElement('html', '<div id="sidebar"><div id="sidebarContent"><!-- content for the sidebar goes here --><br><br><br>'.$linksStr.
-                        '</div></div>');
+    $mform->addElement('html', '<div id="sidebar"><div id="sidebarContent"><!-- content for the sidebar goes here --><br><br><br><div id="assignment-name">' . $this->assignment->get_instance()->name . '</div><br />' . $linksStr);
 
     $duedate = $this->assignment->get_instance()->duedate;
 
@@ -232,18 +232,18 @@ class assign_submission_onlinetexte extends assign_submission_plugin {
 }
 
 
-function add_real_time_word_count_script($mform, $duedate)
-{
-    // Enqueue the JavaScript file with a relative path
-    $js = <<<EOD
-    <script type="text/javascript">
-        var duedate = new Date($duedate * 1000); // Convert Unix timestamp to milliseconds
-    </script>
-    <script type="text/javascript" src="submission/onlinetexte/js/real_time.js"></script>
-    EOD;
+    function add_real_time_word_count_script($mform, $duedate)
+    {
+        // Enqueue the JavaScript file with a relative path
+        $js = <<<EOD
+        <script type="text/javascript">
+            var duedate = new Date($duedate * 1000); // Convert Unix timestamp to milliseconds
+        </script>
+        <script type="text/javascript" src="submission/onlinetexte/js/real_time.js"></script>
+        EOD;
 
-    $mform->addElement('html', $js);
-}
+        $mform->addElement('html', $js);
+    }
 
     /**
      * Editor format options
