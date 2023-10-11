@@ -1,21 +1,30 @@
-#sidebar 
-{
-        width: 400px;
+ #sidebar 
+ {
+ 	width: 400px;
         height: 100%;
         position: fixed;
         top: 0;
         right: -400px;
-        background-color: #f1f1f1;
+        /*background-color: #f1f1f1;*/
+        background-color: #f2f2f2;
         overflow-x: hidden;
         transition: 0.3s;
 }
 
 #sidebar.active 
 {
-        right: 0; 
+	right: 0; 
 }
 
 #sidebarContent 
 {
-        padding: 20px;
+	padding: 20px;
 }
+
+#assignment-name 
+{
+    font-size: 30px;
+    font-weight: bold; 
+}
+
+
