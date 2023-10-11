@@ -4,12 +4,24 @@ document.addEventListener("DOMContentLoaded", function()
     var wordCountDisplay = document.getElementById("word_count_display");
     var timerDisplay = document.getElementById("timer_display");
 
+/*
     function countWords(text) 
     {
         var withoutTags = text.replace(/<\/?[^>]+(>|$)/g, "");
         var wordCount = withoutTags.match(/\b\w+\b/g);
         return wordCount ? wordCount.length : 0;
-    }
+    }*/
+
+function countWords(text) {
+    // Remove HTML tags
+    var withoutTags = text.replace(/<\/?[^>]+(>|$)/g, "");
+    
+    // Use a regular expression to count words, including spaces
+    var wordCount = withoutTags.match(/\S+/g);  // Match non-space characters
+    
+    return wordCount ? wordCount.length : 0;
+}
+
 
     function updateWordCount() 
     {
