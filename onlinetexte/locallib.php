@@ -158,13 +158,6 @@ class assign_submission_onlinetexte extends assign_submission_plugin {
         return true;
     }
 
-    //Format links for saving
-    function format_links($links)
-    {
-        $links = str_replace(',', '<br />', $links);
-
-        return $links;
-    }
 
     /**
      * Add form elements for settings
@@ -177,59 +170,71 @@ class assign_submission_onlinetexte extends assign_submission_plugin {
 
     
     public function get_form_elements($submission, MoodleQuickForm $mform, stdClass $data) {
-    $elements = array();
+        $elements = array();
 
-    $customText = "This is some custom text that will appear above the submission form.";
+        $customText = "This is some custom text that will appear above the submission form.";
 
-    $editoroptions = $this->get_edit_options();
-    $submissionid = $submission ? $submission->id : 0;
+        $editoroptions = $this->get_edit_options();
+        $submissionid = $submission ? $submission->id : 0;
 
-    if (!isset($data->onlinetexte)) {
-        $data->onlinetexte = '';
-    }
-    if (!isset($data->onlinetexteformat)) {
-        $data->onlinetexteformat = editors_get_preferred_format();
-    }
-
-    if ($submission) {
-        $onlinetextesubmission = $this->get_onlinetexte_submission($submission->id);
-        if ($onlinetextesubmission) {
-            $data->onlinetexte = $onlinetextesubmission->onlinetexte;
-            $data->onlinetexteformat = $onlinetextesubmission->onlineformat;
+        if (!isset($data->onlinetexte)) {
+            $data->onlinetexte = '';
         }
+        if (!isset($data->onlinetexteformat)) {
+            $data->onlinetexteformat = editors_get_preferred_format();
+        }
+
+        if ($submission) {
+            $onlinetextesubmission = $this->get_onlinetexte_submission($submission->id);
+            if ($onlinetextesubmission) {
+                $data->onlinetexte = $onlinetextesubmission->onlinetexte;
+                $data->onlinetexteformat = $onlinetextesubmission->onlineformat;
+            }
+        }
+
+        $data = file_prepare_standard_editor($data,
+            'onlinetexte',
+            $editoroptions,
+            $this->assignment->get_context(),
+            'assignsubmission_onlinetexte',
+            ASSIGNSUBMISSION_ONLINETEXTE_FILEAREA,
+            $submissionid);
+
+        //Get saved links
+        $linksStr = $this->get_config('links');
+        $linksStr = $this->format_links($linksStr);
+
+        $mform->addElement('editor', 'onlinetexte_editor', $this->get_name(), null, $editoroptions);
+
+        $mform->addElement('html', '<script> var link = document.createElement("link"); link.rel = "stylesheet"; link.type = "text/css"; link.href = "submission/onlinetexte/css/sidebar.css"; document.head.appendChild(link);</script>');
+
+        $mform->addElement('html',  '<a href="#" style="background-color:powderblue; float: right;" id="sidebarbutton">Side bar</a><script type="text/javascript" src="submission/onlinetexte/js/sidebar.js"></script>');
+
+        $mform->addElement('html', '<div id="word_count_display">Word Count: 0</div>');
+
+        $mform->addElement('html', '<div id="timer_display">Timer: </div>');
+
+        $mform->addElement('html', '<div id="sidebar"><div id="sidebarContent"><br><br>
+                                    <div id="assignment-name">' . $this->assignment->get_instance()->name . '</div>
+                                    <div id="extraLinks"></div>
+                                    </div></div>');
+
+        $duedate = $this->assignment->get_instance()->duedate;
+
+        $this->add_real_time_word_count_script($mform, $duedate);
+        $this->sidebar_extra_links($linksStr);
+
+        return true;
     }
 
-    $data = file_prepare_standard_editor($data,
-        'onlinetexte',
-        $editoroptions,
-        $this->assignment->get_context(),
-        'assignsubmission_onlinetexte',
-        ASSIGNSUBMISSION_ONLINETEXTE_FILEAREA,
-        $submissionid);
+    //Format links for saving
+    function format_links($links)
+    {
+        $links = str_replace(',', ' ', $links);
+        $links = preg_replace('/\s+/',' ', $links);
 
-    //Get saved links
-    $linksStr = $this->get_config('links');
-    $linksStr = $this->format_links($linksStr);
-    $linksArr = explode(' ', $linksStr);
-
-    $mform->addElement('editor', 'onlinetexte_editor', $this->get_name(), null, $editoroptions);
-
-    $mform->addElement('html', '<script> var link = document.createElement("link"); link.rel = "stylesheet"; link.type = "text/css"; link.href = "submission/onlinetexte/css/sidebar.css"; document.head.appendChild(link);</script>');
-
-    $mform->addElement('html',  '<a href="#" style="background-color:powderblue; float: right;" id="sidebarbutton">Side bar</a><script type="text/javascript" src="submission/onlinetexte/js/sidebar.js"></script>');
-
-    $mform->addElement('html', '<div id="word_count_display">Word Count: 0</div>');
-
-    $mform->addElement('html', '<div id="timer_display">Timer: </div>');
-
-    $mform->addElement('html', '<div id="sidebar"><div id="sidebarContent"><!-- content for the sidebar goes here --><br><br><br><div id="assignment-name">' . $this->assignment->get_instance()->name . '</div><br />' . $linksStr);
-
-    $duedate = $this->assignment->get_instance()->duedate;
-
-    $this->add_real_time_word_count_script($mform, $duedate);
-
-    return true;
-}
+        return $links;
+    }
 
 
     function add_real_time_word_count_script($mform, $duedate)
@@ -244,6 +249,19 @@ class assign_submission_onlinetexte extends assign_submission_plugin {
 
         $mform->addElement('html', $js);
     }
+
+    function sidebar_extra_links($links){
+        $js = <<<EOD
+            <script type="text/javascript">
+                var links = "$links";
+            </script>
+            <script type="text/javascript" src="submission/onlinetexte/js/extra_links.js"></script>
+        EOD;
+
+        echo $js;
+    }
+
+
 
     /**
      * Editor format options
