@@ -200,6 +200,8 @@ class assign_submission_onlinetexte extends assign_submission_plugin {
 
     
     public function get_form_elements($submission, MoodleQuickForm $mform, stdClass $data) {
+
+        global $USER;
         $elements = array();
 
         $customText = "This is some custom text that will appear above the submission form.";
@@ -230,26 +232,47 @@ class assign_submission_onlinetexte extends assign_submission_plugin {
             ASSIGNSUBMISSION_ONLINETEXTE_FILEAREA,
             $submissionid);
 
-        $mform->addElement('editor', 'onlinetexte_editor', $this->get_name(), null, $editoroptions);
+        $mform->addElement('html', '<div id="editor" style="float: left;">');
+        $mform->addElement('editor', 'onlinetexte_editor', null, null, $editoroptions);
+        //$mform->addElement('html', '</div> <br /> <br /> <br /> <br /> <br /> <br /> ');
 
         $mform->addElement('html', '<script> var link = document.createElement("link"); link.rel = "stylesheet"; link.type = "text/css"; link.href = "submission/onlinetexte/css/sidebar.css"; document.head.appendChild(link);</script>');
 
-        $mform->addElement('html',  '<a href="#" style="background-color:powderblue; float: right;" id="sidebarbutton">Side bar</a><script type="text/javascript" src="submission/onlinetexte/js/sidebar.js"></script>');
+        $mform->addElement('html', $this->create_realtime_ui());
 
-        $mform->addElement('html', '<div id="word_count_display">Word Count: 0</div>');
+        $mform->addElement('html', $this->create_sidebar());
 
-        $mform->addElement('html', '<div id="timer_display">Timer: </div>');
+        //Get saved links
+        $links = $this->get_config('links');
 
-        $this->create_sidebar($mform);
+        if ($links != null)
+        {
+            $links = $this->format_links($links);
+            $this->sidebar_extra_links($links);
+        }
 
         $duedate = $this->assignment->get_instance()->duedate;
 
-        $this->add_real_time_word_count_script($mform, $duedate);
+        $mform->addElement('html', $this->add_realtime_word_count_script($mform, $duedate));
 
         return true;
     }
 
-    function create_sidebar($mform)
+    function create_realtime_ui()
+    {
+        $realtime_ui = '<div id="word_count_display" style="float: left;">Word Count: 0</div> <br />';
+
+        $realtime_ui .= '<div id="timer_display" style="float: left;">Timer: </div> <br />';
+
+        $realtime_ui .= '<div style="float: left;">
+        <a href="#" id="sidebarbutton">Side bar</a>
+        <script type="text/javascript" src="submission/onlinetexte/js/sidebar.js"></script>
+        </div>';
+
+        return $realtime_ui;
+    }
+
+    function create_sidebar()
     {
         $assignsubmissionstatus = $this->assignment->get_assign_submission_status_renderable($USER, "");
         $gradingcontrollerpreview = $assignsubmissionstatus->gradingcontrollerpreview;
@@ -279,16 +302,7 @@ class assign_submission_onlinetexte extends assign_submission_plugin {
         }
         $sidebar .= '</div></div>';
 
-        $mform->addElement('html', $sidebar);
-
-         //Get saved links
-        $links = $this->get_config('links');
-
-        if ($links != null)
-        {
-            $links = $this->format_links($links);
-            $this->sidebar_extra_links($links);
-        }
+        return $sidebar;
     }
 
     //Format links for saving
@@ -301,17 +315,16 @@ class assign_submission_onlinetexte extends assign_submission_plugin {
     }
 
 
-    function add_real_time_word_count_script($mform, $duedate)
+    function add_realtime_word_count_script($mform, $duedate)
     {
         // Enqueue the JavaScript file with a relative path
-        $js = <<<EOD
+        return $js = <<<EOD
         <script type="text/javascript">
             var duedate = new Date($duedate * 1000); // Convert Unix timestamp to milliseconds
         </script>
         <script type="text/javascript" src="submission/onlinetexte/js/real_time.js"></script>
         EOD;
 
-        $mform->addElement('html', $js);
     }
 
     function sidebar_extra_links($links){
@@ -351,6 +364,7 @@ class assign_submission_onlinetexte extends assign_submission_plugin {
      * @param stdClass $submission
      * @param stdClass $data
      * @return bool
+     *
      */
     public function save(stdClass $submission, stdClass $data) {
         global $USER, $DB;
