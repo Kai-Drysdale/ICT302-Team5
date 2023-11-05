@@ -6,6 +6,6 @@ document.addEventListener("DOMContentLoaded", function()
 
     for(var i=0; i < linksArr.length; i++){
         text.innerHTML += "<br />";
-        text.innerHTML += '<a href="'+linksArr[i]+'">'+linksArr[i]+'</a>';
+        text.innerHTML += '<a href="'+linksArr[i]+'" target="_blank" rel="noopener noreferrer">'+linksArr[i]+'</a>';
     }
 });
