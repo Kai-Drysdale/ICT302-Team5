@@ -1,19 +1,20 @@
  #sidebar 
  {
- 	width: 400px;
+ 	width: 50vh;
         height: 100%;
         position: fixed;
         top: 0;
-        right: -400px;
+        right: -50vh;
         /*background-color: #f1f1f1;*/
         background-color: #f2f2f2;
         overflow-x: hidden;
         transition: 0.3s;
+        overflow: auto;
 }
 
 #sidebar.active 
 {
-	right: 0; 
+	right: 0;
 }
 
 #sidebarContent 
@@ -27,4 +28,14 @@
     font-weight: bold; 
 }
 
+#id_onlinetexte_editoreditable
+{
+    height: 60vh !important;
+    width: 120vh !important;
+}
+
+#topofscroll
+{
+    max-width: none !important;
+}
 
