@@ -120,7 +120,7 @@ class assign_submission_onlinetexte extends assign_submission_plugin {
         
         //Add text area for adding link
         if($this->get_config('links')=='0')
-            $defaultlinks = '0';
+            $defaultlinks = '';
         else
             $defaultlinks = $this->get_config('links');
 
@@ -274,9 +274,11 @@ class assign_submission_onlinetexte extends assign_submission_plugin {
 
     function create_sidebar()
     {
+        global $USER;
         $assignsubmissionstatus = $this->assignment->get_assign_submission_status_renderable($USER, "");
         $gradingcontrollerpreview = $assignsubmissionstatus->gradingcontrollerpreview;
         $examples = $this->get_config('examples');
+        $examples = str_replace("\r\n", "br />", $examples);
 
         $rubric = explode("Rubric options", $gradingcontrollerpreview);
 
